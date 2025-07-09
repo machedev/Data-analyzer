@@ -8,6 +8,11 @@ months = range(1, 13)
 month_labels = ['Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни', 'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември']
 
 st.title("Графики и статистики за наблюдения на птици")
+st.markdown(
+    """
+    **Важно:** Това приложение не събира и не съхранява лични данни. Всички файлове се обработват само локално във вашия браузър и не се изпращат или записват никъде.
+    """
+)
 
 uploaded_file = st.file_uploader("Изберете CSV файл", type="csv")
 if uploaded_file:
@@ -25,18 +30,15 @@ if uploaded_file:
         )
     )
 
-    # Read first line to determine separator and system type
     first_line = uploaded_file.readline().decode('utf-8').strip()
     separator = ';' if ';' in first_line else ','
     separated_values = first_line.split(separator)
     system_type = 'SmartBirds' if separated_values[0].replace('\ufeff', '').strip().lower() == 'id' else 'eBird'
 
-    # Reset file pointer and read the whole file
     uploaded_file.seek(0)
     df = pd.read_csv(uploaded_file, sep=separator, encoding='utf-8')
 
     if system_type == 'SmartBirds':
-        #df = df[df['speciesBg'] != 'Strix aluco | Горска улулица']
         df.index = pd.to_datetime(df['observationDate'], format='%d.%m.%Y')
         df['speciesBg'] = df['speciesBg'].str.replace(r'^.+\|\s*', '', regex=True).str.strip()
         monthly_counts = df['observationDate'].groupby(df.index.month).count()
@@ -45,7 +47,6 @@ if uploaded_file:
         year_unique_species = df.groupby(df.index.year)['speciesBg'].nunique()
         top_species = df['speciesBg'].value_counts().head(10)
     else:
-        #df = df[df['State/Province'].str.startswith('BG-')]
         df['Common Name'] = df['Common Name'].str.replace(r'\([^\)]+\)', '', regex=True).str.strip()
         df.index = pd.to_datetime(df['Date'], format='mixed')
         monthly_counts = df['Date'].groupby(df.index.month).count()
@@ -57,9 +58,10 @@ if uploaded_file:
     fig, ax = plt.subplots(figsize=(18, 8))
     values_species = [unique_species.get(m, 0) for m in months]
     values_months = [monthly_counts.get(m, 0) for m in months]
+    bar_width = 0.2 if len(yearly_counts) == 1 else 0.4
 
     if plot_option == "Наблюдения по месеци":
-        bars1 = ax.bar(months, values_months, width=0.4, color='blue')
+        bars1 = ax.bar(months, values_months, width=bar_width, color='blue')
         ax.bar_label(bars1, padding=3)
         ax.set_title(f"Наблюдения по месеци от {system_type}")
         ax.set_ylabel("Брой наблюдения")
@@ -70,7 +72,7 @@ if uploaded_file:
         ax.set_ylim(bottom=min_val)
         st.pyplot(fig)
     elif plot_option == "Наблюдения по години":
-        bar = ax.bar(yearly_counts.index, yearly_counts.values, width=0.4, color='red')
+        bar = ax.bar(yearly_counts.index, yearly_counts.values, width=bar_width, color='red')
         ax.bar_label(bar, padding=3)
         ax.set_title(f"Наблюдения по години от {system_type}")
         ax.set_ylabel("Брой наблюдения")
@@ -80,7 +82,7 @@ if uploaded_file:
         ax.set_ylim(bottom=min_val)
         st.pyplot(fig)
     elif plot_option == "Видове по години":
-        bar = ax.bar(year_unique_species.index, year_unique_species.values, width=0.4, color='red')
+        bar = ax.bar(year_unique_species.index, year_unique_species.values, width=bar_width, color='red')
         ax.bar_label(bar, padding=3)
         ax.set_title(f"Видове по години от {system_type}")
         ax.set_ylabel("Брой видове")
@@ -90,7 +92,7 @@ if uploaded_file:
         ax.set_ylim(bottom=min_val)
         st.pyplot(fig)
     elif plot_option == "Видове по месеци":
-        bars2 = ax.bar(months, values_species, width=0.4, color='orange')
+        bars2 = ax.bar(months, values_species, width=bar_width, color='orange')
         ax.bar_label(bars2, padding=3)
         ax.set_title(f"Видове по месеци от {system_type}")
         ax.set_ylabel("Брой видове")
@@ -101,8 +103,8 @@ if uploaded_file:
         ax.set_ylim(bottom=min_val)
         st.pyplot(fig)
     elif plot_option == "Наблюдения и видове по месеци":
-        bars1 = ax.bar([m - 0.2 for m in months], values_months, width=0.4, label='Брой наблюдения', color='blue')
-        bars2 = ax.bar([m + 0.2 for m in months], values_species, width=0.4, label='Брой видове', color='orange')
+        bars1 = ax.bar([m - 0.2 for m in months], values_months, width=bar_width, label='Брой наблюдения', color='blue')
+        bars2 = ax.bar([m + 0.2 for m in months], values_species, width=bar_width, label='Брой видове', color='orange')
         ax.bar_label(bars1, padding=3)
         ax.bar_label(bars2, padding=3)
         ax.set_title(f"Наблюдения и видове по месеци от {system_type}")
@@ -113,8 +115,8 @@ if uploaded_file:
         ax.legend(['Брой наблюдения', 'Брой видове'])
         st.pyplot(fig)
     elif plot_option == "Наблюдения и видове по години":
-        bars1 = ax.bar([m - 0.2 for m in yearly_counts.index], yearly_counts.values, width=0.4, label='Брой наблюдения', color='blue')
-        bars2 = ax.bar([m + 0.2 for m in year_unique_species.index], year_unique_species.values, width=0.4, label='Брой видове', color='orange')
+        bars1 = ax.bar([m - 0.2 for m in yearly_counts.index], yearly_counts.values, width=bar_width, label='Брой наблюдения', color='blue')
+        bars2 = ax.bar([m + 0.2 for m in year_unique_species.index], year_unique_species.values, width=bar_width, label='Брой видове', color='orange')
         ax.bar_label(bars1, padding=3)
         ax.bar_label(bars2, padding=3)
         ax.set_title(f"Наблюдения и видове по години от {system_type}")
