@@ -4,17 +4,6 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide")
 
-#st.markdown(
-#    """
-#    <style>
-#    [data-testid="stAppViewContainer"] {
-#        background-color: #dbeda1;
-#    }
-#    </style>
-#    """,
-#    unsafe_allow_html=True
-#)
-
 months = range(1, 13)
 month_labels = ['Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни', 'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември']
 
@@ -65,13 +54,11 @@ if uploaded_file:
         year_unique_species = df.groupby(df.index.year)['Common Name'].nunique()
         top_species = df['Common Name'].value_counts().head(10)
 
-    # Plot
     fig, ax = plt.subplots(figsize=(18, 8))
     values_species = [unique_species.get(m, 0) for m in months]
     values_months = [monthly_counts.get(m, 0) for m in months]
 
     if plot_option == "Наблюдения по месеци":
-        #ax.bar(months, [monthly_counts.get(m, 0) for m in months], color='blue')
         bars1 = ax.bar(months, values_months, width=0.4, color='blue')
         ax.bar_label(bars1, padding=3)
         ax.set_title(f"Наблюдения по месеци от {system_type}")
@@ -103,7 +90,6 @@ if uploaded_file:
         ax.set_ylim(bottom=min_val)
         st.pyplot(fig)
     elif plot_option == "Видове по месеци":
-        #bars2 = ax.bar(months, [unique_species.get(m, 0) for m in months], width=0.4, color='orange')
         bars2 = ax.bar(months, values_species, width=0.4, color='orange')
         ax.bar_label(bars2, padding=3)
         ax.set_title(f"Видове по месеци от {system_type}")
@@ -111,7 +97,6 @@ if uploaded_file:
         ax.set_xlabel("Месец")
         ax.set_xticks(months)
         ax.set_xticklabels(month_labels)
-        # Set y-axis to start from (lowest count - 10), but not below 0
         min_val = max(min(values_species) - 10, 0)
         ax.set_ylim(bottom=min_val)
         st.pyplot(fig)
@@ -136,7 +121,6 @@ if uploaded_file:
         ax.set_ylabel("Брой наблюдения и видове")
         ax.set_xlabel("Година")
         ax.set_xticks(yearly_counts.index)
-        #ax.set_xticklabels(month_labels)
         ax.legend(['Брой наблюдения', 'Брой видове'])
         st.pyplot(fig)
     elif plot_option == "Топ 10 на най-често наблюдавани видове":
