@@ -23,6 +23,7 @@ if uploaded_file:
             "Видове по години",
             "Наблюдения по месеци",
             "Видове по месеци",
+			"Наблюдения по часове",
             "Наблюдения и видове по месеци",
             "Наблюдения и видове по години",
             "Топ 10 на най-често наблюдавани видове",
@@ -46,6 +47,8 @@ if uploaded_file:
         unique_species = df.groupby(df.index.month)['speciesBg'].nunique()
         year_unique_species = df.groupby(df.index.year)['speciesBg'].nunique()
         top_species = df['speciesBg'].value_counts().head(10)
+		df['hour'] = pd.to_datetime(df['observationTime'], format='%H:%M').dt.hour
+        hour_spread = df.groupby('hour').size()
     else:
         df['Common Name'] = df['Common Name'].str.replace(r'\([^\)]+\)', '', regex=True).str.strip()
         df.index = pd.to_datetime(df['Date'], format='mixed')
@@ -54,6 +57,8 @@ if uploaded_file:
         unique_species = df.groupby(df.index.month)['Common Name'].nunique()
         year_unique_species = df.groupby(df.index.year)['Common Name'].nunique()
         top_species = df['Common Name'].value_counts().head(10)
+		df['hour'] = pd.to_datetime(df['Time'], format='%I:%M %p').dt.hour
+        hour_spread = df.groupby('hour').size()
 
     fig, ax = plt.subplots(figsize=(18, 8))
     values_species = [unique_species.get(m, 0) for m in months]
@@ -156,3 +161,13 @@ if uploaded_file:
             species_list = sorted(df['Common Name'].unique())
         st.write(f"Брой видове : {len(species_list)}")
         st.markdown("\n".join(f"- {s}" for s in species_list))
+    elif plot_option == "Наблюдения по часове":
+        bars = ax.bar(hour_spread.index, hour_spread.values, color='purple')
+        fontsize = 8 if len(hour_spread.index) > 10 else 12
+        ax.bar_label(bars, padding=3, fontsize=fontsize)
+        ax.set_title(f"Наблюдения по часове от {system_type}")
+        ax.set_ylabel("Брой наблюдения")
+        ax.set_xlabel("Час")
+        ax.set_xticks(hour_spread.index)
+        ax.set_xticklabels([f"{int(h)}:00" for h in hour_spread.index])
+        st.pyplot(fig)
