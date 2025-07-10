@@ -27,6 +27,7 @@ if uploaded_file:
             "Наблюдения и видове по месеци",
             "Наблюдения и видове по години",
             "Топ 10 на най-често наблюдавани видове",
+            "Топ 10 видове като бройка",
             "Списък на всички отбелязани видове"
         )
     )
@@ -49,6 +50,12 @@ if uploaded_file:
         top_species = df['speciesBg'].value_counts().head(10)
         df['hour'] = pd.to_datetime(df['observationTime'], format='%H:%M').dt.hour
         hour_spread = df.groupby('hour').size()
+        top_species_count = (
+        df.groupby('speciesBg')['count']
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+        )
     else:
         df['Common Name'] = df['Common Name'].str.replace(r'\([^\)]+\)', '', regex=True).str.strip()
         df.index = pd.to_datetime(df['Date'], format='mixed')
@@ -59,6 +66,16 @@ if uploaded_file:
         top_species = df['Common Name'].value_counts().head(10)
         df['hour'] = pd.to_datetime(df['Time'], format='%I:%M %p').dt.hour
         hour_spread = df.groupby('hour').size()
+        df['Count'] = df['Count'].astype(str).str.replace(r'[^\d.]', '', regex=True)
+        df['Count'] = pd.to_numeric(df['Count'], errors='coerce')
+        df['Count'] = df['Count'].fillna(0).astype(int)
+        filtered_df = df[df['Common Name'] != 'X']
+        top_species_count = (
+        filtered_df.groupby('Common Name')['Count']
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+        )
 
     fig, ax = plt.subplots(figsize=(18, 8))
     values_species = [unique_species.get(m, 0) for m in months]
@@ -152,6 +169,15 @@ if uploaded_file:
         ax.set_ylabel("Брой наблюдения")
         ax.set_xlabel("Видове")
         ax.set_xticklabels(top_species.index, rotation=45, ha='right')
+        st.pyplot(fig)
+    elif plot_option == "Топ 10 видове като бройка":
+        bars = ax.bar(top_species_count.index, top_species_count.values, color='green')
+        ax.bar_label(bars, padding=3)
+        ax.set_title(f"Топ 10 видове като бройка от {system_type}")
+        ax.set_ylabel("Бройка")
+        ax.set_xlabel("Видове")
+        ax.set_xticks(top_species_count.index)
+        ax.set_xticklabels(top_species_count.index, rotation=45, ha='right')
         st.pyplot(fig)
     elif plot_option == "Списък на всички отбелязани видове":
         st.write(f"Списък на всички отбелязани видове от {system_type}:")
