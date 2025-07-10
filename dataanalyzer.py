@@ -69,9 +69,8 @@ if uploaded_file:
         df['Count'] = df['Count'].astype(str).str.replace(r'[^\d.]', '', regex=True)
         df['Count'] = pd.to_numeric(df['Count'], errors='coerce')
         df['Count'] = df['Count'].fillna(0).astype(int)
-        filtered_df = df[df['Common Name'] != 'X']
         top_species_count = (
-        filtered_df.groupby('Common Name')['Count']
+        df.groupby('Common Name')['Count']
         .sum()
         .sort_values(ascending=False)
         .head(10)
