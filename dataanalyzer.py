@@ -23,7 +23,7 @@ if uploaded_file:
             "Видове по години",
             "Наблюдения по месеци",
             "Видове по месеци",
-			"Наблюдения по часове",
+	    "Наблюдения по часове",
             "Наблюдения и видове по месеци",
             "Наблюдения и видове по години",
             "Топ 10 на най-често наблюдавани видове",
@@ -47,7 +47,7 @@ if uploaded_file:
         unique_species = df.groupby(df.index.month)['speciesBg'].nunique()
         year_unique_species = df.groupby(df.index.year)['speciesBg'].nunique()
         top_species = df['speciesBg'].value_counts().head(10)
-		df['hour'] = pd.to_datetime(df['observationTime'], format='%H:%M').dt.hour
+	df['hour'] = pd.to_datetime(df['observationTime'], format='%H:%M').dt.hour
         hour_spread = df.groupby('hour').size()
     else:
         df['Common Name'] = df['Common Name'].str.replace(r'\([^\)]+\)', '', regex=True).str.strip()
@@ -57,7 +57,7 @@ if uploaded_file:
         unique_species = df.groupby(df.index.month)['Common Name'].nunique()
         year_unique_species = df.groupby(df.index.year)['Common Name'].nunique()
         top_species = df['Common Name'].value_counts().head(10)
-		df['hour'] = pd.to_datetime(df['Time'], format='%I:%M %p').dt.hour
+	df['hour'] = pd.to_datetime(df['Time'], format='%I:%M %p').dt.hour
         hour_spread = df.groupby('hour').size()
 
     fig, ax = plt.subplots(figsize=(18, 8))
