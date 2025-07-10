@@ -73,21 +73,31 @@ if uploaded_file:
         st.pyplot(fig)
     elif plot_option == "Наблюдения по години":
         bar = ax.bar(yearly_counts.index, yearly_counts.values, width=bar_width, color='red')
-        ax.bar_label(bar, padding=3)
+        fontsize = 8 if len(yearly_counts.index) > 10 else 12
+        ax.bar_label(bar, padding=3, fontsize=fontsize)
         ax.set_title(f"Наблюдения по години от {system_type}")
         ax.set_ylabel("Брой наблюдения")
         ax.set_xlabel("Година")
         ax.set_xticks(yearly_counts.index)
+        if len(yearly_counts.index) > 10:
+            ax.set_xticklabels([str(y)[-2:] for y in yearly_counts.index])
+        else:
+            ax.set_xticklabels(yearly_counts.index)
         min_val = max(min(yearly_counts.values) - 10, 0)
         ax.set_ylim(bottom=min_val)
         st.pyplot(fig)
     elif plot_option == "Видове по години":
         bar = ax.bar(year_unique_species.index, year_unique_species.values, width=bar_width, color='red')
-        ax.bar_label(bar, padding=3)
+        fontsize = 8 if len(year_unique_species.index) > 10 else 12
+        ax.bar_label(bar, padding=3, fontsize=fontsize)
         ax.set_title(f"Видове по години от {system_type}")
         ax.set_ylabel("Брой видове")
         ax.set_xlabel("Година")
         ax.set_xticks(year_unique_species.index)
+        if len(year_unique_species.index) > 10:
+            ax.set_xticklabels([str(y)[-2:] for y in year_unique_species.index])
+        else:
+            ax.set_xticklabels(year_unique_species.index)
         min_val = max(min(year_unique_species.values) - 10, 0)
         ax.set_ylim(bottom=min_val)
         st.pyplot(fig)
@@ -117,12 +127,17 @@ if uploaded_file:
     elif plot_option == "Наблюдения и видове по години":
         bars1 = ax.bar([m - 0.2 for m in yearly_counts.index], yearly_counts.values, width=bar_width, label='Брой наблюдения', color='blue')
         bars2 = ax.bar([m + 0.2 for m in year_unique_species.index], year_unique_species.values, width=bar_width, label='Брой видове', color='orange')
-        ax.bar_label(bars1, padding=3)
-        ax.bar_label(bars2, padding=3)
+        fontsize = 6 if len(year_unique_species.index) > 10 else 12
+        ax.bar_label(bars1, padding=3, fontsize=fontsize)
+        ax.bar_label(bars2, padding=3, fontsize=fontsize)
         ax.set_title(f"Наблюдения и видове по години от {system_type}")
         ax.set_ylabel("Брой наблюдения и видове")
         ax.set_xlabel("Година")
         ax.set_xticks(yearly_counts.index)
+        if len(year_unique_species.index) > 10:
+            ax.set_xticklabels([str(y)[-2:] for y in year_unique_species.index])
+        else:
+            ax.set_xticklabels(year_unique_species.index)
         ax.legend(['Брой наблюдения', 'Брой видове'])
         st.pyplot(fig)
     elif plot_option == "Топ 10 на най-често наблюдавани видове":
