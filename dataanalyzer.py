@@ -34,8 +34,7 @@ if uploaded_file:
 
     first_line = uploaded_file.readline().decode('utf-8').strip()
     separator = ';' if ';' in first_line else ','
-    separated_values = first_line.split(separator)
-    system_type = 'SmartBirds' if separated_values[0].replace('\ufeff', '').strip().lower() == 'id' else 'eBird'
+    system_type = 'SmartBirds' if separator == ';' else 'eBird'
 
     uploaded_file.seek(0)
     df = pd.read_csv(uploaded_file, sep=separator, encoding='utf-8')
@@ -50,6 +49,7 @@ if uploaded_file:
         top_species = df['speciesBg'].value_counts().head(10)
         df['hour'] = pd.to_datetime(df['observationTime'], format='%H:%M').dt.hour
         hour_spread = df.groupby('hour').size()
+        species_list = sorted(df['speciesBg'].unique())
         top_species_count = (
         df.groupby('speciesBg')['count']
         .sum()
@@ -66,6 +66,7 @@ if uploaded_file:
         top_species = df['Common Name'].value_counts().head(10)
         df['hour'] = pd.to_datetime(df['Time'], format='%I:%M %p').dt.hour
         hour_spread = df.groupby('hour').size()
+        species_list = sorted(df['Common Name'].unique())
         df['Count'] = df['Count'].astype(str).str.replace(r'[^\d.]', '', regex=True)
         df['Count'] = pd.to_numeric(df['Count'], errors='coerce')
         df['Count'] = df['Count'].fillna(0).astype(int)
@@ -82,8 +83,8 @@ if uploaded_file:
     bar_width = 0.2 if len(yearly_counts) == 1 else 0.4
 
     if plot_option == "Наблюдения по месеци":
-        bars1 = ax.bar(months, values_months, width=bar_width, color='blue')
-        ax.bar_label(bars1, padding=3)
+        bar = ax.bar(months, values_months, width=bar_width, color='blue')
+        ax.bar_label(bar, padding=3)
         ax.set_title(f"Наблюдения по месеци от {system_type}")
         ax.set_ylabel("Брой наблюдения")
         ax.set_xlabel("Месеци")
@@ -123,8 +124,8 @@ if uploaded_file:
         ax.set_ylim(bottom=min_val)
         st.pyplot(fig)
     elif plot_option == "Видове по месеци":
-        bars2 = ax.bar(months, values_species, width=bar_width, color='orange')
-        ax.bar_label(bars2, padding=3)
+        bar = ax.bar(months, values_species, width=bar_width, color='orange')
+        ax.bar_label(bar, padding=3)
         ax.set_title(f"Видове по месеци от {system_type}")
         ax.set_ylabel("Брой видове")
         ax.set_xlabel("Месец")
@@ -162,16 +163,16 @@ if uploaded_file:
         ax.legend(['Брой наблюдения', 'Брой видове'])
         st.pyplot(fig)
     elif plot_option == "Топ 10 на най-често наблюдавани видове":
-        bars = ax.bar(top_species.index, top_species.values, color='green')
-        ax.bar_label(bars, padding=3)
+        bar = ax.bar(top_species.index, top_species.values, color='green')
+        ax.bar_label(bar, padding=3)
         ax.set_title(f"Топ 10 на най-много наблюдавани видове от {system_type}")
         ax.set_ylabel("Брой наблюдения")
         ax.set_xlabel("Видове")
         ax.set_xticklabels(top_species.index, rotation=45, ha='right')
         st.pyplot(fig)
     elif plot_option == "Топ 10 видове като бройка":
-        bars = ax.bar(top_species_count.index, top_species_count.values, color='green')
-        ax.bar_label(bars, padding=3)
+        bar = ax.bar(top_species_count.index, top_species_count.values, color='green')
+        ax.bar_label(bar, padding=3)
         ax.set_title(f"Топ 10 видове като бройка от {system_type}")
         ax.set_ylabel("Бройка")
         ax.set_xlabel("Видове")
@@ -180,16 +181,12 @@ if uploaded_file:
         st.pyplot(fig)
     elif plot_option == "Списък на всички отбелязани видове":
         st.write(f"Списък на всички отбелязани видове от {system_type}:")
-        if system_type == 'SmartBirds':
-            species_list = sorted(df['speciesBg'].unique())
-        else:
-            species_list = sorted(df['Common Name'].unique())
         st.write(f"Брой видове : {len(species_list)}")
         st.markdown("\n".join(f"- {s}" for s in species_list))
     elif plot_option == "Наблюдения по часове":
-        bars = ax.bar(hour_spread.index, hour_spread.values, color='purple')
+        bar = ax.bar(hour_spread.index, hour_spread.values, color='purple')
         fontsize = 8 if len(hour_spread.index) > 10 else 12
-        ax.bar_label(bars, padding=3, fontsize=fontsize)
+        ax.bar_label(bar, padding=3, fontsize=fontsize)
         ax.set_title(f"Наблюдения по часове от {system_type}")
         ax.set_ylabel("Брой наблюдения")
         ax.set_xlabel("Час")
