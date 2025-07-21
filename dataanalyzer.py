@@ -6,6 +6,36 @@ st.set_page_config(layout="wide")
 
 months = range(1, 13)
 month_labels = ['Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни', 'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември']
+area_codes = {
+"BG-01": "Благоевград",
+"BG-02": "Бургас",
+"BG-03": "Варна",
+"BG-04": "Велико Търново",
+"BG-05": "Видин",
+"BG-06": "Враца",
+"BG-07": "Габрово",
+"BG-08": "Добрич",
+"BG-09": "Кърджали",
+"BG-10": "Кюстендил",
+"BG-11": "Ловеч",
+"BG-12": "Монтана",
+"BG-13": "Пазарджик",
+"BG-14": "Перник",
+"BG-15": "Плевен",
+"BG-16": "Пловдив",
+"BG-17": "Разград",
+"BG-18": "Русе",
+"BG-19": "Силистра",
+"BG-20": "Сливен",
+"BG-21": "Смолян",
+"BG-22": "София-град",
+"BG-23": "София",
+"BG-24": "Стара Загора",
+"BG-25": "Търговище",
+"BG-26": "Хасково",
+"BG-27": "Шумен",
+"BG-28": "Ямбол"
+}
 
 st.title("Графики и статистики за наблюдения на птици")
 st.markdown(
@@ -28,6 +58,7 @@ if uploaded_file:
             "Наблюдения и видове по години",
             "Топ 10 на най-често наблюдавани видове",
             "Топ 10 видове като бройка",
+            "Топ 10 по области (само за България)",
             "Списък на всички отбелязани видове"
         )
     )
@@ -49,6 +80,9 @@ if uploaded_file:
         top_species = df['speciesBg'].value_counts().head(10)
         df['hour'] = pd.to_datetime(df['observationTime'], format='%H:%M').dt.hour
         hour_spread = df.groupby('hour').size()
+        df_areas = df[df['autoLocationEn'].str.endswith('Bulgaria')][df['autoLocationLocal'].str.endswith('България')]
+        df_areas['area'] = df['autoLocationLocal'].str.split(',').str[1].str.strip()
+        top_areas = df_areas['area'].value_counts().head(10)
         species_list = sorted(df['speciesBg'].unique())
         top_species_count = (
         df.groupby('speciesBg')['count']
@@ -66,6 +100,8 @@ if uploaded_file:
         top_species = df['Common Name'].value_counts().head(10)
         df['hour'] = pd.to_datetime(df['Time'], format='%I:%M %p').dt.hour
         hour_spread = df.groupby('hour').size()
+        df_areas = df[df['State/Province'].str.startswith('BG-')]
+        top_areas = df_areas['State/Province'].value_counts().head(10)
         species_list = sorted(df['Common Name'].unique())
         df['Count'] = df['Count'].astype(str).str.replace(r'[^\d.]', '', regex=True)
         df['Count'] = pd.to_numeric(df['Count'], errors='coerce')
@@ -183,6 +219,18 @@ if uploaded_file:
         st.write(f"Списък на всички отбелязани видове от {system_type}:")
         st.write(f"Брой видове : {len(species_list)}")
         st.markdown("\n".join(f"- {s}" for s in species_list))
+    elif plot_option == "Топ 10 по области (само за България)":
+        bar = ax.bar(top_areas.index, top_areas.values, color='cyan')
+        ax.bar_label(bar, padding=3)
+        ax.set_title(f"Топ 10 по области от {system_type}")
+        ax.set_ylabel("Брой наблюдения")
+        ax.set_xlabel("Области")
+        if system_type == 'SmartBirds':
+            ax.set_xticklabels(top_areas.index, rotation=45, ha='right')
+        else:
+            ax.set_xticks(top_areas.index)
+            ax.set_xticklabels([area_codes[area] for area in top_areas.index], rotation=45, ha='right')
+        st.pyplot(fig)
     elif plot_option == "Наблюдения по часове":
         bar = ax.bar(hour_spread.index, hour_spread.values, color='purple')
         fontsize = 8 if len(hour_spread.index) > 10 else 12
